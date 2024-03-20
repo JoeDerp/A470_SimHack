@@ -8,13 +8,25 @@ np.random.seed(0)
 
 colors = ['blue', 'green', 'orange', 'yellow']
 class Resource:
-     def __init__(self, x, y, z):
+    def __init__(self, x, y, z):
         self.pos = [x, y, z]
         self.colors = ['blue', 'green'] # or orange, or yellow
         self.TxRate = 40
         self.RxRate = 35
         self.velocity = [0, 0, 0]
         self.connection = None
+    
+    def findRelay(self,relays,maxDist):
+        for relay in relays:
+            if np.linalg.norm(np.array(relay.pos)-np.array(self.pos)) <= maxDist:
+                for band in relay.colors:
+                    if band == self.colors[0] or band == self.colors[1]:
+                        self.localRelay = relay
+                        self.localBand = band
+                        return self
+                    else:
+                        self.localRelay = None
+        return self
 
 class Relay(Resource):
     def __init__(self, x, y, z):
@@ -23,18 +35,67 @@ class Relay(Resource):
 class House(Resource):
     def __init__(self, x, y, z):
         super().__init__(x, y, z)
+    
+    def findRelay(self,relays,maxDist):
+        for relay in relays:
+            if np.linalg.norm(np.array(relay.pos)-np.array(self.pos)) <= maxDist:
+                for band in relay.colors:
+                    if band == self.colors[0] or band == self.colors[1]:
+                        self.localRelay = relay
+                        self.localBand = band
+                        return self
+                    else:
+                        self.localRelay = None
+        return self
 
 class Car(Resource):
     def __init__(self, x, y, z):
         super().__init__(x, y, z)
 
+    def findRelay(self,relays,maxDist):
+        for relay in relays:
+            if np.linalg.norm(np.array(relay.pos)-np.array(self.pos)) <= maxDist:
+                for band in relay.colors:
+                    if band == self.colors[0] or band == self.colors[1]:
+                        self.localRelay = relay
+                        self.localBand = band
+                        return self
+                    else:
+                        self.localRelay = None
+        return self
+
 class Phone(Resource):
     def __init__(self, x, y, z):
         super().__init__(x, y, z)
+        
+    def findRelay(self,relays,maxDist):
+        for relay in relays:
+            if np.linalg.norm(np.array(relay.pos)-np.array(self.pos)) <= maxDist:
+                for band in relay.colors:
+                    if band == self.colors[0] or band == self.colors[1]:
+                        self.localRelay = relay
+                        self.localBand = band
+                        return self
+                    else:
+                        self.localRelay = None
+        return self
 
 class Server(Resource):
     def __init__(self, x, y, z):
         super().__init__(x, y, z)
+    
+    def findRelay(self,relays,maxDist):
+        for relay in relays:
+            if np.linalg.norm(np.array(relay.pos)-np.array(self.pos)) <= maxDist:
+                for band in relay.colors:
+                    if band == self.colors[0] or band == self.colors[1]:
+                        self.localRelay = relay
+                        self.localBand = band
+                        return self
+                    else:
+                        self.localRelay = None
+        return self
+
 
 def getImage(path, zoom):
    return OffsetImage(plt.imread(path, format="png"), zoom=zoom)
@@ -144,7 +205,7 @@ for x, y in zip(px, py):
      phone.RxRate = np.random.choice([.5, 1, 2], 1) # Scroller, Navigator, Streamer
      phone.TxRate = np.random.choice([.5, 1], 1) # Navigator, Scroller
      phone.velocity =  np.random.rand(1, 2)*2 # 5 is max speed
-     phones.append(Phone(x, y, 0))
+     phones.append(phone)
      ab = AnnotationBbox(getImage(path, .2), (x, y), frameon=False)
      ax.add_artist(ab)
 
@@ -175,7 +236,7 @@ for x, y in zip(sx, sy):
      server.TxRate = 100
      server.RxRate = 30
      server.velocity = [0, 0, 0]
-     servers.append(Server(x, y, 0))
+     servers.append(server)
      ab = AnnotationBbox(getImage(path, .3), (x, y), frameon=False)
      ax.add_artist(ab)
 
@@ -229,5 +290,29 @@ for p in range(50, 60):
 #    ax.plot([_.pos[0], _.connection.pos[0]], [_.pos[1], _.connection.pos[1]])
 
 ax.autoscale()
+
+for house in houses:
+    house.findRelay(relays,225)
+for car in cars:
+    car.findRelay(relays,225)
+for server in servers:
+    server.findRelay(relays,400)
+for phone in phones:
+    phone.findRelay(relays,225)
+
+# for house in houses:
+#     house.findRelay(relays,225)
+#     if house.localRelay == None or house.connection.localRelay == None:
+#         pass
+#     else:
+#         ax.plot([house.pos[0], house.localRelay.pos[0]], [house.pos[1], house.localRelay.pos[1]])
+#         ax.plot([house.localRelay.pos[0], house.connection.localRelay.pos[0]], [house.pos[1], house.connection.localRelay.pos[1]])
+    
+ax.plot([houses[0].pos[0], houses[0].localRelay.pos[0]], [houses[0].pos[1], houses[0].localRelay.pos[1]])
+ax.plot([houses[0].localRelay.pos[0], houses[0].connection.localRelay.pos[0]], [houses[0].pos[1], houses[0].connection.localRelay.pos[1]])
+ax.plot([houses[0].connection.pos[0], houses[0].connection.localRelay.pos[0]], [houses[0].connection.pos[1], houses[0].connection.localRelay.pos[1]])
+
+ax.plot([houses[2].pos[0], houses[2].localRelay.pos[0]], [houses[2].pos[1], houses[2].localRelay.pos[1]])
+ax.plot([houses[2].localRelay.pos[0], houses[2].connection.localRelay.pos[0]], [houses[2].pos[1], houses[2].connection.localRelay.pos[1]])
 
 plt.show()
